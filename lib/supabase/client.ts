@@ -1,14 +1,19 @@
 import { createBrowserClient } from '@supabase/ssr'
 
 export function createSupabaseClient() {
-  return createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      auth: {
-        persistSession: true,      // Keeps the user logged in across browser sessions
-        autoRefreshToken: true,    // Automatically refreshes the token before it expires
-      }
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  // Safely check for EITHER name so it never crashes
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  if (!supabaseUrl || !supabaseKey) {
+    console.error('[Supabase] Missing environment variables. Auth will be disabled.')
+    throw new Error('Missing Supabase env vars. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY (or ANON_KEY)')
+  }
+
+  return createBrowserClient(supabaseUrl, supabaseKey, {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
     }
-  )
+  })
 }
